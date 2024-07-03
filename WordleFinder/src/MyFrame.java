@@ -16,20 +16,17 @@ public class MyFrame extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        // Kolory zgodnie z paletą Wordle
-        Color backgroundColor = new Color(18, 18, 19); // --wordleBlack-3
-        Color tileBackgroundColor = new Color(58, 58, 60); // --gray-25
-        Color textColor = new Color(215, 218, 220); // --gray-27
-        Color boardPanelColor = new Color(30, 30, 30); // --wordleBlack-2
-        Color borderColor = new Color(64, 64, 64); // --gray-26
+        Color backgroundColor = new Color(18, 18, 19);
+        Color tileBackgroundColor = new Color(58, 58, 60);
+        Color textColor = new Color(215, 218, 220);
+        Color boardPanelColor = new Color(30, 30, 30);
+        Color borderColor = new Color(64, 64, 64);
 
-        // Tworzenie panelu głównego z marginesami
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BorderLayout(20, 20));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         mainPanel.setBackground(backgroundColor);
 
-        // Tworzenie panelu planszy
         boardPanel = new JPanel();
         boardPanel.setLayout(new GridLayout(6, 5, 10, 10));
         boardPanel.setBackground(boardPanelColor);
@@ -48,7 +45,6 @@ public class MyFrame extends JFrame {
                 board[row][col].setCaretColor(textColor);
                 board[row][col].setBorder(BorderFactory.createLineBorder(borderColor));
 
-                // Dodaj DocumentFilter aby ograniczyć wprowadzenie do jednej litery i konwertować na wielkie litery
                 ((AbstractDocument) board[row][col].getDocument()).setDocumentFilter(new DocumentFilter() {
                     @Override
                     public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException {
@@ -70,8 +66,7 @@ public class MyFrame extends JFrame {
         }
 
         mainPanel.add(boardPanel, BorderLayout.WEST);
-
-        // Tworzenie panelu listy słów
+        
         JPanel wordListPanel = new JPanel();
         wordListPanel.setLayout(new BorderLayout());
         wordListPanel.setBackground(backgroundColor);
