@@ -55,16 +55,16 @@ public class MyFrame extends JFrame {
             for (int col = 0; col < 5; col++) {
                 final int currentRow = row;
                 final int currentCol = col;
-                board[currentRow][currentCol] = new JTextField();
-                board[currentRow][currentCol].setFont(new Font("Arial", Font.PLAIN, 24));
-                board[currentRow][currentCol].setHorizontalAlignment(JTextField.CENTER);
-                board[currentRow][currentCol].setPreferredSize(fieldSize);
-                board[currentRow][currentCol].setBackground(tileBackgroundColor);
-                board[currentRow][currentCol].setForeground(textColor);
-                board[currentRow][currentCol].setCaretColor(textColor);
-                board[currentRow][currentCol].setBorder(BorderFactory.createLineBorder(borderColor));
+                JTextField field = new JTextField();
+                field.setFont(new Font("Arial", Font.PLAIN, 24));
+                field.setHorizontalAlignment(JTextField.CENTER);
+                field.setPreferredSize(fieldSize);
+                field.setBackground(tileBackgroundColor);
+                field.setForeground(textColor);
+                field.setCaretColor(textColor);
+                field.setBorder(BorderFactory.createLineBorder(borderColor));
 
-                ((AbstractDocument) board[currentRow][currentCol].getDocument()).setDocumentFilter(new DocumentFilter() {
+                ((AbstractDocument) field.getDocument()).setDocumentFilter(new DocumentFilter() {
                     @Override
                     public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException {
                         if ((fb.getDocument().getLength() + string.length()) <= 1) {
@@ -82,43 +82,45 @@ public class MyFrame extends JFrame {
                     }
                 });
 
-                board[currentRow][currentCol].addKeyListener(new KeyAdapter() {
+                field.addKeyListener(new KeyAdapter() {
+                    @Override
+                    public void keyPressed(KeyEvent e) {
+                        if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE && field.getText().isEmpty()) {
+                            field.setBackground(tileBackgroundColor);
+                            transferFocusToPreviousField(currentRow, currentCol);
+                        }
+                    }
+
                     @Override
                     public void keyReleased(KeyEvent e) {
-                        if (board[currentRow][currentCol].getDocument().getLength() == 1) {
+                        if (e.getKeyCode() != KeyEvent.VK_BACK_SPACE && field.getDocument().getLength() == 1) {
                             transferFocusToNextField(currentRow, currentCol);
                         }
                     }
                 });
 
-                board[currentRow][currentCol].addMouseListener(new MouseAdapter() {
-                    private int state = 0;
-
+                field.addMouseListener(new MouseAdapter() {
                     @Override
                     public void mouseClicked(MouseEvent e) {
                         if (SwingUtilities.isRightMouseButton(e)) {
-                            board[currentRow][currentCol].setText("");
-                            board[currentRow][currentCol].setBackground(tileBackgroundColor);
-                            state = 0;
+                            field.setText("");
+                            field.setBackground(tileBackgroundColor);
                             updateWordList();
-                        } else if (!board[currentRow][currentCol].getText().isEmpty()) {
-                            state = (state + 1) % 3;
-                            switch (state) {
-                                case 0:
-                                    board[currentRow][currentCol].setBackground(tileBackgroundColor);
-                                    break;
-                                case 1:
-                                    board[currentRow][currentCol].setBackground(presentColor);
-                                    break;
-                                case 2:
-                                    board[currentRow][currentCol].setBackground(correctColor);
-                                    break;
+                        } else if (!field.getText().isEmpty()) {
+                            Color currentColor = field.getBackground();
+                            if (currentColor.equals(tileBackgroundColor)) {
+                                field.setBackground(presentColor);
+                            } else if (currentColor.equals(presentColor)) {
+                                field.setBackground(correctColor);
+                            } else if (currentColor.equals(correctColor)) {
+                                field.setBackground(tileBackgroundColor);
                             }
                             updateWordList();
                         }
                     }
                 });
 
+                board[currentRow][currentCol] = field;
                 boardPanel.add(board[currentRow][currentCol]);
             }
         }
@@ -164,6 +166,14 @@ public class MyFrame extends JFrame {
         }
     }
 
+    private void transferFocusToPreviousField(int row, int col) {
+        if (col > 0) {
+            board[row][col - 1].requestFocus();
+        } else if (row > 0) {
+            board[row - 1][4].requestFocus();
+        }
+    }
+
     private void updateWordList() {
         StringBuilder greenPatternBuilder = new StringBuilder("_____");
         StringBuilder yellowPatternBuilder = new StringBuilder("_____");
@@ -199,15 +209,11 @@ public class MyFrame extends JFrame {
             }
         }
 
-        System.out.println("Green Pattern: " + greenPattern);
-        System.out.println("Yellow Pattern: " + yellowPattern);
-        System.out.println("Gray Pattern: " + grayPattern);
-
         List<String> filteredWords = new ArrayList<>(wordList);
 
         filteredWords = Utils.findGray(filteredWords, grayPattern);
         filteredWords = Utils.findYellow(filteredWords, yellowPattern);
-        filteredWords = Utils.findGreenLetters(filteredWords, greenPattern);
+        filteredWords = Utils.findGreen(filteredWords, greenPattern);
 
         DefaultListModel<String> listModel = (DefaultListModel<String>) wordJList.getModel();
         listModel.clear();

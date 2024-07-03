@@ -5,6 +5,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Scanner;
 
+/** Utils class for some functions
+ *
+ */
 public class Utils {
 
     /** Loads given language
@@ -30,8 +33,13 @@ public class Utils {
         return words;
     }
 
-
-    public static List<String> findGreenLetters(List<String> listToFind, String regex) {
+    /** Finds words containing green letters
+     *
+     * @param listToFind List of words to filter
+     * @param regex Keyword to filter, like _a__i_
+     * @return Words containing green letters
+     */
+    public static List<String> findGreen(List<String> listToFind, String regex) {
         regex = regex.toLowerCase(Locale.ROOT);
         List<String> tmp = new ArrayList<>();
         for (String listWord : listToFind) {
@@ -42,10 +50,16 @@ public class Utils {
         return tmp;
     }
 
-    public static boolean checkGreenMatching(String word, String pattern) {
+    /** A helper-function to detect matching
+     *
+     * @param word Word to check
+     * @param regex Keyword to filer, like _a__i_
+     * @return Result of validation as a boolean
+     */
+    public static boolean checkGreenMatching(String word, String regex) {
         for (int i = 0; i < word.length(); i++) {
             char c1 = word.charAt(i);
-            char c2 = pattern.charAt(i);
+            char c2 = regex.charAt(i);
             if (c2 == '_') {
                 continue;
             }
@@ -56,6 +70,12 @@ public class Utils {
         return true;
     }
 
+    /** Finds words containing yellow letters
+     *
+     * @param listToFind List of words to filter
+     * @param regex Keyword to filter, like _a__i_
+     * @return Words containing yellow letters
+     */
     public static List<String> findYellow(List<String> listToFind, String regex) {
         List<String> tmpList = new ArrayList<>();
         regex = regex.toLowerCase(Locale.ROOT);
@@ -81,6 +101,12 @@ public class Utils {
         return !tmpList.isEmpty() ? tmpList : listToFind;
     }
 
+    /** Finds words which does not contain any char of given regex
+     *
+     * @param listToFind List of words to filter
+     * @param regex String of chars that should exclude words, like 'bklhf'
+     * @return Words that does not contain any letter from regex
+     */
     public static List<String> findGray(List<String> listToFind, String regex) {
         List<String> tmpList = new ArrayList<>();
         CharSequence seq = regex.replace("_", "");
