@@ -8,11 +8,16 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class MyFrame extends JFrame {
 
     protected static List<String> wordList;
+    protected static JList<String> wordJList;
 
     static {
         wordList = Utils.loadLanguage(Main.LANGUAGE);
@@ -65,6 +70,7 @@ public class MyFrame extends JFrame {
                     public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException {
                         if ((fb.getDocument().getLength() + string.length()) <= 1) {
                             super.insertString(fb, offset, string.toUpperCase(), attr);
+                            updateWordList();
                         }
                     }
 
@@ -72,6 +78,7 @@ public class MyFrame extends JFrame {
                     public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
                         if ((fb.getDocument().getLength() + text.length() - length) <= 1) {
                             super.replace(fb, offset, length, text.toUpperCase(), attrs);
+                            updateWordList();
                         }
                     }
                 });
@@ -103,6 +110,7 @@ public class MyFrame extends JFrame {
                                     board[currentRow][currentCol].setBackground(correctColor);
                                     break;
                             }
+                            updateWordList();
                         }
                     }
                 });
@@ -117,7 +125,7 @@ public class MyFrame extends JFrame {
         wordListPanel.setLayout(new BorderLayout());
         wordListPanel.setBackground(backgroundColor);
 
-        JList<String> wordJList = new JList<>(new DefaultListModel<>());
+        wordJList = new JList<>(new DefaultListModel<>());
         DefaultListModel<String> listModel = (DefaultListModel<String>) wordJList.getModel();
         listModel.addAll(wordList);
 
@@ -144,12 +152,60 @@ public class MyFrame extends JFrame {
         setVisible(true);
     }
 
+
     private void transferFocusToNextField(int row, int col) {
         if (col < 4) {
             board[row][col + 1].requestFocus();
         } else if (row < 5) {
             board[row + 1][0].requestFocus();
         }
+    }
+
+    private void updateWordList() {
+
+        StringBuilder greenPatternBuilder = new StringBuilder("_____");
+        StringBuilder yellowPatternBuilder = new StringBuilder("_____");
+        Set<Character> grayChars = new HashSet<>();
+
+        for (int row = 0; row < 6; row++) {
+            for (int col = 0; col < 5; col++) {
+                String text = board[row][col].getText().trim().toUpperCase();
+                if (text.length() == 1) {
+                    char c = text.charAt(0);
+                    Color color = board[row][col].getBackground();
+                    if (color.equals(new Color(83, 141, 78))) {
+                        greenPatternBuilder.setCharAt(col, c);
+                    } else if (color.equals(new Color(181, 159, 59))) {
+                        yellowPatternBuilder.setCharAt(col, c);
+                    } else if (color.equals(new Color(58, 58, 60))) {
+                        grayChars.add(c);
+                    }
+                }
+            }
+        }
+
+        String greenPattern = greenPatternBuilder.toString();
+        String yellowPattern = yellowPatternBuilder.toString();
+        String grayPattern = grayChars.stream()
+                .map(String::valueOf)
+                .reduce((s1, s2) -> s1 + s2)
+                .orElse("");
+
+
+        List<String> filteredWords = new ArrayList<>(wordList);
+
+
+        filteredWords = Utils.findGray(filteredWords, grayPattern);
+
+        filteredWords = Utils.findYellow(filteredWords, yellowPattern);
+
+        filteredWords = Utils.findGreenLetters(filteredWords, greenPattern);
+
+
+        DefaultListModel<String> listModel = (DefaultListModel<String>) wordJList.getModel();
+        listModel.clear();
+        listModel.addAll(filteredWords);
+
     }
 
 }
