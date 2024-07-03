@@ -88,6 +88,7 @@ public class MyFrame extends JFrame {
                         if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE && field.getText().isEmpty()) {
                             field.setBackground(tileBackgroundColor);
                             transferFocusToPreviousField(currentRow, currentCol);
+                            updateWordList();
                         }
                     }
 
@@ -149,6 +150,7 @@ public class MyFrame extends JFrame {
         });
 
         JScrollPane scrollPane = new JScrollPane(wordJList);
+        scrollPane.setBorder(BorderFactory.createLineBorder(borderColor));
         wordListPanel.add(scrollPane, BorderLayout.CENTER);
 
         mainPanel.add(wordListPanel, BorderLayout.CENTER);
