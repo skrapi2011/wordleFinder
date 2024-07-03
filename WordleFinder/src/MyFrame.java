@@ -37,7 +37,7 @@ public class MyFrame extends JFrame {
 
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BorderLayout(20, 20));
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(60, 60, 60, 60));
         mainPanel.setBackground(backgroundColor);
 
         boardPanel = new JPanel();
@@ -117,11 +117,25 @@ public class MyFrame extends JFrame {
         wordListPanel.setLayout(new BorderLayout());
         wordListPanel.setBackground(backgroundColor);
 
-        JTextArea wordListArea = new JTextArea();
-        wordListArea.setEditable(false);
-        wordListArea.setBackground(tileBackgroundColor);
-        wordListArea.setForeground(textColor);
-        wordListPanel.add(new JScrollPane(wordListArea), BorderLayout.CENTER);
+        JList<String> wordJList = new JList<>(new DefaultListModel<>());
+        DefaultListModel<String> listModel = (DefaultListModel<String>) wordJList.getModel();
+        listModel.addAll(wordList);
+
+        wordJList.setBackground(tileBackgroundColor);
+        wordJList.setForeground(textColor);
+
+        wordJList.setCellRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                label.setFont(new Font("Arial", Font.PLAIN, 24));
+                label.setHorizontalAlignment(SwingConstants.CENTER);
+                return label;
+            }
+        });
+
+        JScrollPane scrollPane = new JScrollPane(wordJList);
+        wordListPanel.add(scrollPane, BorderLayout.CENTER);
 
         mainPanel.add(wordListPanel, BorderLayout.CENTER);
 
