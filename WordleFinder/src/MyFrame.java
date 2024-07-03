@@ -4,6 +4,8 @@ import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 
 public class MyFrame extends JFrame {
 
@@ -34,18 +36,21 @@ public class MyFrame extends JFrame {
 
         Dimension fieldSize = new Dimension(60, 60);
 
+
         for (int row = 0; row < 6; row++) {
             for (int col = 0; col < 5; col++) {
-                board[row][col] = new JTextField();
-                board[row][col].setFont(new Font("Arial", Font.PLAIN, 24));
-                board[row][col].setHorizontalAlignment(JTextField.CENTER);
-                board[row][col].setPreferredSize(fieldSize);
-                board[row][col].setBackground(tileBackgroundColor);
-                board[row][col].setForeground(textColor);
-                board[row][col].setCaretColor(textColor);
-                board[row][col].setBorder(BorderFactory.createLineBorder(borderColor));
+                final int currentRow = row;
+                final int currentCol = col;
+                board[currentRow][currentCol] = new JTextField();
+                board[currentRow][currentCol].setFont(new Font("Arial", Font.PLAIN, 24));
+                board[currentRow][currentCol].setHorizontalAlignment(JTextField.CENTER);
+                board[currentRow][currentCol].setPreferredSize(fieldSize);
+                board[currentRow][currentCol].setBackground(tileBackgroundColor);
+                board[currentRow][currentCol].setForeground(textColor);
+                board[currentRow][currentCol].setCaretColor(textColor);
+                board[currentRow][currentCol].setBorder(BorderFactory.createLineBorder(borderColor));
 
-                ((AbstractDocument) board[row][col].getDocument()).setDocumentFilter(new DocumentFilter() {
+                ((AbstractDocument) board[currentRow][currentCol].getDocument()).setDocumentFilter(new DocumentFilter() {
                     @Override
                     public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException {
                         if ((fb.getDocument().getLength() + string.length()) <= 1) {
@@ -61,12 +66,21 @@ public class MyFrame extends JFrame {
                     }
                 });
 
-                boardPanel.add(board[row][col]);
+                board[currentRow][currentCol].addKeyListener(new KeyAdapter() {
+                    @Override
+                    public void keyReleased(KeyEvent e) {
+                        if (board[currentRow][currentCol].getDocument().getLength() == 1) {
+                            transferFocusToNextField(currentRow, currentCol);
+                        }
+                    }
+                });
+
+                boardPanel.add(board[currentRow][currentCol]);
             }
         }
 
         mainPanel.add(boardPanel, BorderLayout.WEST);
-        
+
         JPanel wordListPanel = new JPanel();
         wordListPanel.setLayout(new BorderLayout());
         wordListPanel.setBackground(backgroundColor);
@@ -84,5 +98,12 @@ public class MyFrame extends JFrame {
         setVisible(true);
     }
 
+    private void transferFocusToNextField(int row, int col) {
+        if (col < 4) {
+            board[row][col + 1].requestFocus();
+        } else if (row < 5) {
+            board[row + 1][0].requestFocus();
+        }
+    }
 
 }
