@@ -1,5 +1,7 @@
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class Utils {
@@ -8,7 +10,8 @@ public class Utils {
      *
      * @param language Language to load (ex. "EN")
      */
-    public static void loadLanguage(String language){
+    public static List<String> loadLanguage(String language){
+        List<String> words = new ArrayList<>();
         try{
             String path = "languages/"+language+".txt";
             Scanner sc = new Scanner(new File(path));
@@ -16,13 +19,14 @@ public class Utils {
 
             while(sc.hasNextLine()){
                 line = sc.nextLine();
-                Main.wordList.add(line);
+                words.add(line);
             }
 
             sc.close();
         }catch(FileNotFoundException e){
             System.err.println("File "+language+".txt not found");
         }
+        return words;
     }
 
 

@@ -6,8 +6,17 @@ import javax.swing.text.DocumentFilter;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.List;
 
 public class MyFrame extends JFrame {
+
+    protected static List<String> wordList;
+
+    static {
+        wordList = Utils.loadLanguage(Main.LANGUAGE);
+    }
 
     private JPanel boardPanel;
     private JTextField[][] board;
@@ -23,6 +32,8 @@ public class MyFrame extends JFrame {
         Color textColor = new Color(215, 218, 220);
         Color boardPanelColor = new Color(30, 30, 30);
         Color borderColor = new Color(64, 64, 64);
+        Color correctColor = new Color(83, 141, 78);
+        Color presentColor = new Color(181, 159, 59);
 
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BorderLayout(20, 20));
@@ -35,7 +46,6 @@ public class MyFrame extends JFrame {
         board = new JTextField[6][5];
 
         Dimension fieldSize = new Dimension(60, 60);
-
 
         for (int row = 0; row < 6; row++) {
             for (int col = 0; col < 5; col++) {
@@ -71,6 +81,28 @@ public class MyFrame extends JFrame {
                     public void keyReleased(KeyEvent e) {
                         if (board[currentRow][currentCol].getDocument().getLength() == 1) {
                             transferFocusToNextField(currentRow, currentCol);
+                        }
+                    }
+                });
+
+                board[currentRow][currentCol].addMouseListener(new MouseAdapter() {
+                    private int state = 0;
+
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        if (!board[currentRow][currentCol].getText().isEmpty()) {
+                            state = (state + 1) % 3;
+                            switch (state) {
+                                case 0:
+                                    board[currentRow][currentCol].setBackground(tileBackgroundColor);
+                                    break;
+                                case 1:
+                                    board[currentRow][currentCol].setBackground(presentColor);
+                                    break;
+                                case 2:
+                                    board[currentRow][currentCol].setBackground(correctColor);
+                                    break;
+                            }
                         }
                     }
                 });
