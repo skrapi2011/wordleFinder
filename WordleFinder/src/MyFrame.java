@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class MyFrame extends JFrame {
 
@@ -97,7 +96,12 @@ public class MyFrame extends JFrame {
 
                     @Override
                     public void mouseClicked(MouseEvent e) {
-                        if (!board[currentRow][currentCol].getText().isEmpty()) {
+                        if (SwingUtilities.isRightMouseButton(e)) {
+                            board[currentRow][currentCol].setText("");
+                            board[currentRow][currentCol].setBackground(tileBackgroundColor);
+                            state = 0;
+                            updateWordList();
+                        } else if (!board[currentRow][currentCol].getText().isEmpty()) {
                             state = (state + 1) % 3;
                             switch (state) {
                                 case 0:
@@ -152,7 +156,6 @@ public class MyFrame extends JFrame {
         setVisible(true);
     }
 
-
     private void transferFocusToNextField(int row, int col) {
         if (col < 4) {
             board[row][col + 1].requestFocus();
@@ -162,14 +165,13 @@ public class MyFrame extends JFrame {
     }
 
     private void updateWordList() {
-
         StringBuilder greenPatternBuilder = new StringBuilder("_____");
         StringBuilder yellowPatternBuilder = new StringBuilder("_____");
         Set<Character> grayChars = new HashSet<>();
 
         for (int row = 0; row < 6; row++) {
             for (int col = 0; col < 5; col++) {
-                String text = board[row][col].getText().trim().toUpperCase();
+                String text = board[row][col].getText().trim().toLowerCase();
                 if (text.length() == 1) {
                     char c = text.charAt(0);
                     Color color = board[row][col].getBackground();
@@ -191,21 +193,25 @@ public class MyFrame extends JFrame {
                 .reduce((s1, s2) -> s1 + s2)
                 .orElse("");
 
+        for (char c : greenPattern.toCharArray()) {
+            if (c != '_') {
+                grayPattern = grayPattern.replace(String.valueOf(c), "");
+            }
+        }
+
+        System.out.println("Green Pattern: " + greenPattern);
+        System.out.println("Yellow Pattern: " + yellowPattern);
+        System.out.println("Gray Pattern: " + grayPattern);
 
         List<String> filteredWords = new ArrayList<>(wordList);
 
-
         filteredWords = Utils.findGray(filteredWords, grayPattern);
-
         filteredWords = Utils.findYellow(filteredWords, yellowPattern);
-
         filteredWords = Utils.findGreenLetters(filteredWords, greenPattern);
-
 
         DefaultListModel<String> listModel = (DefaultListModel<String>) wordJList.getModel();
         listModel.clear();
         listModel.addAll(filteredWords);
-
     }
 
 }
