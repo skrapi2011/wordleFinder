@@ -1,9 +1,6 @@
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Scanner;
+import java.util.*;
 
 /** Utils class for some functions
  *
@@ -23,7 +20,7 @@ public class Utils {
 
             while(sc.hasNextLine()){
                 line = sc.nextLine();
-                words.add(line);
+                words.add(line.toLowerCase(Locale.ROOT));
             }
 
             sc.close();
@@ -33,101 +30,85 @@ public class Utils {
         return words;
     }
 
-    /** Finds words containing green letters
+    /** Filters words based on green, yellow, and gray clues
      *
-     * @param listToFind List of words to filter
-     * @param regex Keyword to filter, like _a__i_
-     * @return Words containing green letters
+     * @param wordList List of words to filter
+     * @param greens Map of positions to green letters
+     * @param yellows Map of positions to yellow letters
+     * @param grays Set of gray letters
+     * @param minCounts Map of letters to minimum counts
+     * @param maxCounts Map of letters to maximum counts
+     * @return Filtered list of words
      */
-    public static List<String> findGreen(List<String> listToFind, String regex) {
-        regex = regex.toLowerCase(Locale.ROOT);
-        List<String> tmp = new ArrayList<>();
-        for (String listWord : listToFind) {
-            if (checkGreenMatching(listWord, regex)) {
-                tmp.add(listWord);
+    public static List<String> filterWords(
+            List<String> wordList,
+            Map<Integer, Character> greens,
+            Map<Integer, Character> yellows,
+            Set<Character> grays,
+            Map<Character, Integer> minCounts,
+            Map<Character, Integer> maxCounts
+    ) {
+        List<String> filteredWords = new ArrayList<>();
+
+        for (String word : wordList) {
+            if (isValidWord(word, greens, yellows, grays, minCounts, maxCounts)) {
+                filteredWords.add(word);
             }
         }
-        return tmp;
+
+        return filteredWords;
     }
 
-    /** A helper-function to detect matching
-     *
-     * @param word Word to check
-     * @param regex Keyword to filer, like _a__i_
-     * @return Result of validation as a boolean
-     */
-    public static boolean checkGreenMatching(String word, String regex) {
-        for (int i = 0; i < word.length(); i++) {
-            char c1 = word.charAt(i);
-            char c2 = regex.charAt(i);
-            if (c2 == '_') {
-                continue;
+    private static boolean isValidWord(
+            String word,
+            Map<Integer, Character> greens,
+            Map<Integer, Character> yellows,
+            Set<Character> grays,
+            Map<Character, Integer> minCounts,
+            Map<Character, Integer> maxCounts
+    ) {
+        Map<Character, Integer> wordCounts = new HashMap<>();
+        char[] letters = word.toCharArray();
+
+        // Check green letters and build wordCounts
+        for (int i = 0; i < letters.length; i++) {
+            char c = letters[i];
+            wordCounts.put(c, wordCounts.getOrDefault(c, 0) + 1);
+
+            if (greens.containsKey(i)) {
+                if (greens.get(i) != c) {
+                    return false;
+                }
             }
-            if (c1 != c2) {
+        }
+
+        // Check yellow letters
+        for (Map.Entry<Integer, Character> entry : yellows.entrySet()) {
+            int pos = entry.getKey();
+            char c = entry.getValue();
+            if (letters[pos] == c || !wordCounts.containsKey(c)) {
                 return false;
             }
         }
+
+        // Check gray letters
+        for (char c : grays) {
+            int countInWord = wordCounts.getOrDefault(c, 0);
+            int maxCount = maxCounts.getOrDefault(c, 0);
+            if (countInWord > maxCount) {
+                return false;
+            }
+        }
+
+        // Check minimum counts
+        for (Map.Entry<Character, Integer> entry : minCounts.entrySet()) {
+            char c = entry.getKey();
+            int minCount = entry.getValue();
+            if (wordCounts.getOrDefault(c, 0) < minCount) {
+                return false;
+            }
+        }
+
         return true;
     }
-
-    /** Finds words containing yellow letters
-     *
-     * @param listToFind List of words to filter
-     * @param regex Keyword to filter, like _a__i_
-     * @return Words containing yellow letters
-     */
-    public static List<String> findYellow(List<String> listToFind, String regex) {
-        List<String> tmpList = new ArrayList<>();
-        regex = regex.toLowerCase(Locale.ROOT);
-        CharSequence seq = regex.replace("_", "");
-        int correctCount = seq.length();
-        char[] regexArr = regex.toCharArray();
-
-        for (String s : listToFind) {
-            int correctFound = 0, i = 0;
-            for (char c : regexArr) {
-                seq = c + "";
-                if (s.contains(seq) && s.charAt(i) != c) {
-                    correctFound++;
-                }
-                i++;
-            }
-
-            if (correctCount == correctFound) {
-                tmpList.add(s);
-            }
-        }
-
-        return !tmpList.isEmpty() ? tmpList : listToFind;
-    }
-
-    /** Finds words which does not contain any char of given regex
-     *
-     * @param listToFind List of words to filter
-     * @param regex String of chars that should exclude words, like 'bklhf'
-     * @return Words that does not contain any letter from regex
-     */
-    public static List<String> findGray(List<String> listToFind, String regex) {
-        List<String> tmpList = new ArrayList<>();
-        CharSequence seq = regex.replace("_", "");
-        int correctCount = seq.length();
-        char[] regexHelp = regex.toCharArray();
-
-        for (String s : listToFind) {
-            int correct = 0;
-            for (char c : regexHelp) {
-                seq = c + "";
-                if (!s.contains(seq)) {
-                    correct++;
-                }
-            }
-
-            if (correctCount == correct) {
-                tmpList.add(s);
-            }
-        }
-
-        return !tmpList.isEmpty() ? tmpList : listToFind;
-    }
-
 }
