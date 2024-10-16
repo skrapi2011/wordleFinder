@@ -8,8 +8,10 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class MyFrame extends JFrame {
 
@@ -178,12 +180,9 @@ public class MyFrame extends JFrame {
     }
 
     private void updateWordList() {
-        Map<Integer, Character> greens = new HashMap<>();
-        Map<Integer, Character> yellows = new HashMap<>();
-        Set<Character> grays = new HashSet<>();
-
-        Map<Character, Integer> minCounts = new HashMap<>();
-        Map<Character, Integer> maxCounts = new HashMap<>();
+        StringBuilder greenPatternBuilder = new StringBuilder("_____");
+        StringBuilder yellowPatternBuilder = new StringBuilder("_____");
+        Set<Character> grayChars = new HashSet<>();
 
         for (int row = 0; row < 6; row++) {
             for (int col = 0; col < 5; col++) {
@@ -192,33 +191,34 @@ public class MyFrame extends JFrame {
                     char c = text.charAt(0);
                     Color color = board[row][col].getBackground();
                     if (color.equals(correctColor)) {
-                        greens.put(col, c);
-                        minCounts.put(c, minCounts.getOrDefault(c, 0) + 1);
+                        greenPatternBuilder.setCharAt(col, c);
                     } else if (color.equals(presentColor)) {
-                        yellows.put(col, c);
-                        minCounts.put(c, minCounts.getOrDefault(c, 0) + 1);
+                        yellowPatternBuilder.setCharAt(col, c);
                     } else if (color.equals(tileBackgroundColor)) {
-                        grays.add(c);
+                        grayChars.add(c);
                     }
                 }
             }
         }
 
-        // Set max counts for gray letters
-        for (char c : grays) {
-            int maxCount = minCounts.getOrDefault(c, 0);
-            maxCounts.put(c, maxCount);
+        String greenPattern = greenPatternBuilder.toString();
+        String yellowPattern = yellowPatternBuilder.toString();
+        String grayPattern = grayChars.stream()
+                .map(String::valueOf)
+                .reduce((s1, s2) -> s1 + s2)
+                .orElse("");
+
+        for (char c : greenPattern.toCharArray()) {
+            if (c != '_') {
+                grayPattern = grayPattern.replace(String.valueOf(c), "");
+            }
         }
 
-        // Remove green and yellow letters from gray letters
-        for (char c : greens.values()) {
-            grays.remove(c);
-        }
-        for (char c : yellows.values()) {
-            grays.remove(c);
-        }
+        List<String> filteredWords = new ArrayList<>(wordList);
 
-        List<String> filteredWords = Utils.filterWords(wordList, greens, yellows, grays, minCounts, maxCounts);
+        filteredWords = Utils.findGray(filteredWords, grayPattern);
+        filteredWords = Utils.findYellow(filteredWords, yellowPattern);
+        filteredWords = Utils.findGreen(filteredWords, greenPattern);
 
         DefaultListModel<String> listModel = (DefaultListModel<String>) wordJList.getModel();
         listModel.clear();

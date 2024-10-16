@@ -1,7 +1,7 @@
 
 public class Main {
 
-    public static final String LANGUAGE = "PL";
+    public static final String LANGUAGE = "EN";
 
     public static void main(String[] args) {
 
