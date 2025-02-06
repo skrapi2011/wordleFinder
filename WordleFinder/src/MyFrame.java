@@ -267,7 +267,8 @@ public class MyFrame extends JFrame {
 
             results = Utils.findGreenLetters(results, greenPattern.toString().toCharArray());
             results = Utils.findYellow(results, yellowPattern.toString());
-            results = Utils.findGray(results, grayString.toString());
+            String nonGray = (greenPattern.toString() + yellowPattern).replace("_", "");
+            results = Utils.findGray(results, grayString.toString(), nonGray);
         }
 
         DefaultListModel<String> listModel = (DefaultListModel<String>) wordJList.getModel();

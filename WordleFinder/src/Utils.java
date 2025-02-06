@@ -103,31 +103,53 @@ public class Utils {
     }
 
     /**
-     * Returns a list of words that do not contain any of the letters
-     * specified in the 'regex' string (interpreted as 'gray' letters).
-     * Underscores are removed before checking.
+     * Returns a list of words that satisfy the letter count constraints deduced from the guess.
      *
      * @param listToFind the list of candidate words
-     * @param regex a String containing letters that must not appear in the words
+     * @param grayRegex a String containing letters guessed as gray
+     * @param nonGray a String containing the letters that were marked as green or yellow (without underscores)
      * @return the filtered list of matching words
      */
-    public static List<String> findGray(List<String> listToFind, String regex) {
+    public static List<String> findGray(List<String> listToFind, String grayRegex, String nonGray) {
         List<String> tempList = new ArrayList<>();
-        String lettersOnly = regex.replace("_", "");
-        int requiredCount = lettersOnly.length();
-        char[] chars = lettersOnly.toCharArray();
+
+        Map<Character, Integer> requiredCounts = new HashMap<>();
+        for (char c : nonGray.toCharArray()) {
+            requiredCounts.put(c, requiredCounts.getOrDefault(c, 0) + 1);
+        }
+        
+        Set<Character> lettersToCheck = new HashSet<>();
+        for (char c : (nonGray + grayRegex).toCharArray()) {
+            lettersToCheck.add(c);
+        }
 
         for (String word : listToFind) {
-            int missingCount = 0;
-            for (char c : chars) {
-                if (!word.contains(String.valueOf(c))) {
-                    missingCount++;
+            boolean valid = true;
+            for (char letter : lettersToCheck) {
+                int countInWord = countOccurrences(word, letter);
+                int required = requiredCounts.getOrDefault(letter, 0);
+                if (countInWord != required) {
+                    valid = false;
+                    break;
                 }
             }
-            if (missingCount == requiredCount) {
+            if (valid) {
                 tempList.add(word);
             }
         }
         return tempList.isEmpty() ? listToFind : tempList;
+    }
+
+    /**
+     * Helper method to count occurrences of a given letter in a word.
+     */
+    private static int countOccurrences(String word, char letter) {
+        int count = 0;
+        for (char c : word.toCharArray()) {
+            if (c == letter) {
+                count++;
+            }
+        }
+        return count;
     }
 }
