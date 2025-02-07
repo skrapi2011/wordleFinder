@@ -31,14 +31,14 @@ public class MyFrame extends JFrame {
 
     private JPanel boardPanel;
     private JTextField[][] board;
+    private JButton clearButton;
+    private JButton languageButton;
 
     public MyFrame() {
         setTitle("Wordle Solver");
         setSize(800, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
-
-
 
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BorderLayout(20, 20));
@@ -56,6 +56,7 @@ public class MyFrame extends JFrame {
             for (int col = 0; col < 5; col++) {
                 final int currentRow = row;
                 final int currentCol = col;
+
                 JTextField field = new JTextField();
                 field.setFont(new Font("Arial", Font.PLAIN, 24));
                 field.setHorizontalAlignment(JTextField.CENTER);
@@ -122,8 +123,8 @@ public class MyFrame extends JFrame {
                     }
                 });
 
-                board[currentRow][currentCol] = field;
-                boardPanel.add(board[currentRow][currentCol]);
+                board[row][col] = field;
+                boardPanel.add(board[row][col]);
             }
         }
 
@@ -153,12 +154,54 @@ public class MyFrame extends JFrame {
         JScrollPane scrollPane = new JScrollPane(wordJList);
         scrollPane.setBorder(BorderFactory.createLineBorder(borderColor));
         wordListPanel.add(scrollPane, BorderLayout.CENTER);
-
         mainPanel.add(wordListPanel, BorderLayout.CENTER);
 
-        add(mainPanel, BorderLayout.CENTER);
+        JPanel bottomPanel = new JPanel();
+        bottomPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 10));
+        bottomPanel.setBackground(backgroundColor);
 
+        clearButton = new JButton();
+        clearButton.setBackground(tileBackgroundColor);
+        clearButton.setForeground(textColor);
+        clearButton.setFont(new Font("Arial", Font.BOLD, 16));
+        clearButton.setFocusPainted(false);
+        clearButton.setBorder(BorderFactory.createLineBorder(borderColor));
+        clearButton.addActionListener(e -> clearBoard());
+
+        languageButton = new JButton();
+        languageButton.setBackground(tileBackgroundColor);
+        languageButton.setForeground(textColor);
+        languageButton.setFont(new Font("Arial", Font.BOLD, 16));
+        languageButton.setFocusPainted(false);
+        languageButton.setBorder(BorderFactory.createLineBorder(borderColor));
+        languageButton.addActionListener(e -> {
+            if ("PL".equalsIgnoreCase(Main.LANGUAGE)) {
+                Main.LANGUAGE = "EN";
+            } else {
+                Main.LANGUAGE = "PL";
+            }
+            wordList = Utils.loadLanguage(Main.LANGUAGE);
+            clearBoard();
+            updateButtonsText();
+        });
+
+        updateButtonsText();
+
+        bottomPanel.add(clearButton);
+        bottomPanel.add(languageButton);
+        mainPanel.add(bottomPanel, BorderLayout.SOUTH);
+        add(mainPanel, BorderLayout.CENTER);
         setVisible(true);
+    }
+
+    private void updateButtonsText() {
+        if ("PL".equalsIgnoreCase(Main.LANGUAGE)) {
+            clearButton.setText("Wyczyść");
+            languageButton.setText("PL");
+        } else {
+            clearButton.setText("Clear");
+            languageButton.setText("EN");
+        }
     }
 
     private void transferFocusToNextField(int row, int col) {
@@ -177,52 +220,59 @@ public class MyFrame extends JFrame {
         }
     }
 
-    private void updateWordList() {
-        Map<Integer, Character> greens = new HashMap<>();
-        Map<Integer, Character> yellows = new HashMap<>();
-        Set<Character> grays = new HashSet<>();
-
-        Map<Character, Integer> minCounts = new HashMap<>();
-        Map<Character, Integer> maxCounts = new HashMap<>();
-
+    private void clearBoard() {
         for (int row = 0; row < 6; row++) {
             for (int col = 0; col < 5; col++) {
-                String text = board[row][col].getText().trim().toLowerCase();
+                board[row][col].setText("");
+                board[row][col].setBackground(tileBackgroundColor);
+            }
+        }
+        updateWordList();
+    }
+
+    private void updateWordList() {
+        List<String> results = new ArrayList<>(wordList);
+
+        for (int row = 0; row < 6; row++) {
+            boolean anyFilled = false;
+            for (int col = 0; col < 5; col++) {
+                if (!board[row][col].getText().trim().isEmpty()) {
+                    anyFilled = true;
+                    break;
+                }
+            }
+            if (!anyFilled) {
+                continue;
+            }
+
+            StringBuilder greenPattern = new StringBuilder("_____");
+            StringBuilder yellowPattern = new StringBuilder("_____");
+            StringBuilder grayString = new StringBuilder();
+
+            for (int col = 0; col < 5; col++) {
+                String text = board[row][col].getText().trim().toLowerCase(Locale.ROOT);
                 if (text.length() == 1) {
                     char c = text.charAt(0);
                     Color color = board[row][col].getBackground();
+
                     if (color.equals(correctColor)) {
-                        greens.put(col, c);
-                        minCounts.put(c, minCounts.getOrDefault(c, 0) + 1);
+                        greenPattern.setCharAt(col, c);
                     } else if (color.equals(presentColor)) {
-                        yellows.put(col, c);
-                        minCounts.put(c, minCounts.getOrDefault(c, 0) + 1);
-                    } else if (color.equals(tileBackgroundColor)) {
-                        grays.add(c);
+                        yellowPattern.setCharAt(col, c);
+                    } else {
+                        grayString.append(c);
                     }
                 }
             }
-        }
 
-        // Set max counts for gray letters
-        for (char c : grays) {
-            int maxCount = minCounts.getOrDefault(c, 0);
-            maxCounts.put(c, maxCount);
+            results = Utils.findGreenLetters(results, greenPattern.toString().toCharArray());
+            results = Utils.findYellow(results, yellowPattern.toString());
+            String nonGray = (greenPattern.toString() + yellowPattern).replace("_", "");
+            results = Utils.findGray(results, grayString.toString(), nonGray);
         }
-
-        // Remove green and yellow letters from gray letters
-        for (char c : greens.values()) {
-            grays.remove(c);
-        }
-        for (char c : yellows.values()) {
-            grays.remove(c);
-        }
-
-        List<String> filteredWords = Utils.filterWords(wordList, greens, yellows, grays, minCounts, maxCounts);
 
         DefaultListModel<String> listModel = (DefaultListModel<String>) wordJList.getModel();
         listModel.clear();
-        listModel.addAll(filteredWords);
+        listModel.addAll(results);
     }
-
 }
