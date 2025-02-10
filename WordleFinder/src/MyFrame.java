@@ -166,6 +166,10 @@ public class MyFrame extends JFrame {
         clearButton.setFont(new Font("Arial", Font.BOLD, 16));
         clearButton.setFocusPainted(false);
         clearButton.setBorder(BorderFactory.createLineBorder(borderColor));
+        clearButton.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(borderColor),
+                BorderFactory.createEmptyBorder(10, 20, 10, 20)
+        ));
         clearButton.addActionListener(e -> clearBoard());
 
         languageButton = new JButton();
@@ -174,6 +178,10 @@ public class MyFrame extends JFrame {
         languageButton.setFont(new Font("Arial", Font.BOLD, 16));
         languageButton.setFocusPainted(false);
         languageButton.setBorder(BorderFactory.createLineBorder(borderColor));
+        languageButton.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(borderColor),
+                BorderFactory.createEmptyBorder(10, 20, 10, 20)
+        ));
         languageButton.addActionListener(e -> {
             if ("PL".equalsIgnoreCase(Main.LANGUAGE)) {
                 Main.LANGUAGE = "EN";
