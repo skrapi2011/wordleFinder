@@ -35,7 +35,7 @@ public class MyFrame extends JFrame {
     private JButton languageButton;
 
     public MyFrame() {
-        setTitle("Wordle Solver");
+        setTitle("Wordle Finder");
         setSize(800, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
